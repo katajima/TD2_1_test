@@ -15,7 +15,8 @@
 WorldTransform& Player::GetWorldTransform() { return worldTransform_; }
 
 // デストラクタ
-Player::~Player() {
+Player::~Player() 
+{
 
 	// delete mapChipField_;
 }

@@ -90,7 +90,9 @@ public:
 	// 衝突を検出したら呼び出されるコールバック関数
 	void OnCollision([[maybe_unused]] Collider* other) override;
 
-	Vector3 rad{0.25f,0.5f,0.25f};
+
+	// マップ用
+	Vector3 rad{0.01f,0.5f,0.01f};
 	AABB collAABB;
 
 

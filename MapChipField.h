@@ -26,6 +26,10 @@ public:
 		uint32_t zIndex;
 	};
 
+	struct MapObject {
+		std::unique_ptr<WorldTransform> worldTransformBlocks_;
+		AABB collAABB;
+	};
 
 public:
 
@@ -61,11 +65,6 @@ public:
 	//座標からマップチップ番号を計算
 	IndexSet GetMapChipIndexSetByPosition(const Vector3& position);
 
-	
-	Vector3 MapRemovePos(AABB &charcter,Vector3 &pos);
-
-	Vector3 MapRemoveY(AABB &charcter,  Vector3 &pos, IndexSet &index);
-
 	bool IsMapAABB(AABB &charcter, IndexSet &index);
 	bool IsMapAABB(AABB &charcter);
 
@@ -90,8 +89,8 @@ private:
 
 	// ブロック用のワールドトランスフォームをユニークポインタで管理。
 	// 複数並べるために配列にする
-	std::vector<std::vector<std::unique_ptr<WorldTransform>>> worldTransformBlocks_;
+	std::vector<std::vector<std::unique_ptr<MapObject>>> mapWorld_;
 	
-	AABB collAABB[kNumBlockHorizontal][kNumBlockVirtical];
+	//AABB collAABB[kNumBlockHorizontal][kNumBlockVirtical];
 	Vector3 rad = {0.5f, 0.5f, 0.5f};
 };
