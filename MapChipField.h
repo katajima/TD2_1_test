@@ -61,6 +61,9 @@ public:
 
 	uint32_t GetNumBlockHorizontal();
 
+	float calculateWaveEffect(int x, int z, float time, int waveOriginX, int waveOriginZ, float waveSpeed, float waveAmplitude, float waveRange);
+
+	float calculateWaveEffectSquare(int x, int z, float time, int waveOriginX, int waveOriginZ, float waveAmplitude, int waveSize);
 
 	//座標からマップチップ番号を計算
 	IndexSet GetMapChipIndexSetByPosition(const Vector3& position);
@@ -94,4 +97,6 @@ private:
 	
 	//AABB collAABB[kNumBlockHorizontal][kNumBlockVirtical];
 	Vector3 rad_ = {0.5f, 0.5f, 0.5f};
+
+	const float waveDuration = 5.0f;
 };

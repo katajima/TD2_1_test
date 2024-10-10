@@ -30,12 +30,14 @@ private:
 	// 速度
 	Vector3 velocity_ = {};
 
+	// ジャンプフラグ
 	bool isJamp_ = false;
-	
 
 	// 着地状態フラグ
 	bool onGround_ = true;
 
+	// 飛んでいるときの当たり判定無視フラグ
+	bool isFlyColliderIgnored = 0;
 
 	// モデル
 	Model* model_ = nullptr;
@@ -43,7 +45,6 @@ private:
 	// テクスチャハンドル
 	uint32_t textureHandle_ = 0u;
 
-	bool isFlyColliderIgnored = 0;
 
 public:
 	///< summary>

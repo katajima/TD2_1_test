@@ -106,6 +106,8 @@ void GameScene::Initialize() {
 	//移動範囲の指定
 	cameraController_->SetMovableArea({-100, 100, -100, 100});
 
+	viewProjection_.translation_ = {7.4f, 9.3f, -22.0f};
+	viewProjection_.rotation_.x = 0.31f;
 	
 }
 

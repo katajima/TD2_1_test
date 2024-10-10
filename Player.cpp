@@ -67,14 +67,18 @@ void Player::Update() {
 	ImGui::End();
 
 	// マップチップに応じたY座標（高さ）の更新
-	// mapChipField_->IsMapY(worldTransform_.translation_.y, rad.y, index);
 	if (!isFlyColliderIgnored) {
-		if (onGround_ == true) {
-			mapChipField_->IsMapY2(collAABB_, worldTransform_.translation_.y, rad_.y);
-		} else if (onGround_ == false && isJamp_ == true) {
+
+		if (onGround_ == true) // 地面に着地している 
+		{
+			//mapChipField_->IsMapY2(collAABB_, worldTransform_.translation_.y, rad_.y);
+		}
+		else if (onGround_ == false && isJamp_ == true) // 着地していなくて、ジャンプしているとき 
+		{
 			mapChipField_->IsMapY(collAABB_, worldTransform_.translation_.y, rad_);
-			// mapChipField_->IsMapY(worldTransform_.translation_.y, rad_.y, index);
-		} else if (!onGround_ && !isJamp_) {
+		}
+		else if (!onGround_ && !isJamp_) // 着地していなくて、ジャンプしていないとき
+		{
 			isJamp_ = true;
 		}
 
@@ -88,6 +92,8 @@ void Player::Update() {
 			onGround_ = false;
 		}
 	}
+
+
 
 	// プレイヤーの移動を行う
 	Move(); // ① 移動処理（少しずつ移動して衝突判定を行うように修正する必要あり）
@@ -162,8 +168,6 @@ void Player::Move() {
 		worldTransform_.translation_.z = 0;
 	}
 	if (worldTransform_.translation_.y <= 1) {
-		// worldTransform_.translation_.y = 1;
-		// isJamp = false;
 	}
 }
 

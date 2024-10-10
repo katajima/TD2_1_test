@@ -43,44 +43,115 @@ void MapChipField::Initialize() {
 }
 
 void MapChipField::Update() {
-
-	
-
 	ImGui::Begin("MapAABB");
 	ImGui::DragFloat("pos00", &mapWorld_[0][0]->worldTransformBlocks_->translation_.y, 0.01f);
 	ImGui::DragFloat("pos10", &mapWorld_[0][1]->worldTransformBlocks_->translation_.y, 0.01f);
+	ImGui::End();
+
+	static float time = 0.0f;            // ウェーブの時間を管理
+	static bool hasWaveOccurred = false; // ウェーブが発生したかどうかのフラグ
+	const float deltaTime = 0.016f;      // フレームごとの時間経過（例: 60fpsの場合）
+
+	// ウェーブの設定
+	const int waveOriginX = 5;        // ウェーブの中心となるX座標（インデックス）
+	const int waveOriginZ = 5;        // ウェーブの中心となるZ座標（インデックス）
+	const float waveSpeed = 2.0f;     // ウェーブの進行速度
+	const float waveAmplitude = 1.0f; // ウェーブの高さ（振幅）
+	//const float waveDuration = 1.0f;  // ウェーブの持続時間
+
+	// ウェーブの広がりサイズを計算
+	int waveSize = int(time * waveSpeed);
+
 	// ブロックの更新
-	int i = 0;
-	for (auto& worldTransformBlockLine : mapWorld_) {
-		int j = 0;
-		for (auto& worldTransformBlock : worldTransformBlockLine) {
+	for (int i = 0; i < mapWorld_.size(); ++i) {
+		for (int j = 0; j < mapWorld_[i].size(); ++j) {
+			auto& worldTransformBlock = mapWorld_[i][j];
 			if (!worldTransformBlock)
 				continue;
+
+			// ウェーブ効果を計算
+			float waveHeight = 0.0f;
+
+			// ウェーブ範囲内にあるか判定
+			if (i >= waveOriginX - waveSize && i <= waveOriginX + waveSize && j >= waveOriginZ - waveSize && j <= waveOriginZ + waveSize) {
+				// ウェーブ効果を計算
+				waveHeight = calculateWaveEffectSquare(j, i, time, waveOriginX, waveOriginZ, waveAmplitude, waveSize);
+			}
+
+			// マップチップのY座標にウェーブの高さを適用
+			worldTransformBlock->worldTransformBlocks_->translation_.y = waveHeight;
+
 			// AABBのmaxとminを設定
 			worldTransformBlock->collAABB.max = Add(worldTransformBlock->worldTransformBlocks_->translation_, rad_);
 			worldTransformBlock->collAABB.min = Subtract(worldTransformBlock->worldTransformBlocks_->translation_, rad_);
-			MapChipType o =  GetMapChipTypeByIndex(i,j);
-			int a;
-			a = int(o);
-			ImGui::InputInt("num", &a);
-			// maxの表示
-			ImGui::InputFloat3(("max" + std::to_string(i) + "," + std::to_string(j)).c_str(), &worldTransformBlock->collAABB.max.x);
-			// minの表示
-			ImGui::InputFloat3(("min" + std::to_string(i) + "," + std::to_string(j)).c_str(), &worldTransformBlock->collAABB.min.x);
 
-			// アフィン変換
-			worldTransformBlock->worldTransformBlocks_->matWorld_ = MakeAffineMatrixMatrix(
-			    worldTransformBlock->worldTransformBlocks_->scale_, 
-				worldTransformBlock->worldTransformBlocks_->rotation_, 
-				worldTransformBlock->worldTransformBlocks_->translation_);
-
-			// 定数バッファに転送する
-			worldTransformBlock->worldTransformBlocks_->TransferMatrix();
-			j++;
+			// アフィン変換の更新
+			worldTransformBlock->worldTransformBlocks_->UpdateMatrix();
 		}
-		i++;
 	}
-	ImGui::End();
+
+	// ウェーブの時間を更新
+	if (!hasWaveOccurred && time < waveDuration) {
+		time += deltaTime;
+	} else if (time >= waveDuration) {
+		// ウェーブが発生したらフラグを立てる
+		hasWaveOccurred = true;
+
+		// 元の高さに戻す
+		for (int i = 0; i < mapWorld_.size(); ++i) {
+			for (int j = 0; j < mapWorld_[i].size(); ++j) {
+				auto& worldTransformBlock = mapWorld_[i][j];
+				if (!worldTransformBlock)
+					continue;
+
+				// マップチップのY座標を元に戻す
+				worldTransformBlock->worldTransformBlocks_->translation_.y = 0.0f;
+
+				// AABBのmaxとminを設定
+				worldTransformBlock->collAABB.max = Add(worldTransformBlock->worldTransformBlocks_->translation_, rad_);
+				worldTransformBlock->collAABB.min = Subtract(worldTransformBlock->worldTransformBlocks_->translation_, rad_);
+
+				// アフィン変換の更新
+				worldTransformBlock->worldTransformBlocks_->UpdateMatrix();
+			}
+		}
+	}
+}
+
+
+// 四角形状のウェーブ効果の計算関数
+float MapChipField::calculateWaveEffectSquare(int x, int z, float time, int waveOriginX, int waveOriginZ, float waveAmplitude, int waveSize) {
+	// ウェーブの範囲内の座標に対して振幅効果を適用
+	float distanceX = float(std::abs(x - waveOriginX));
+	float distanceZ = float(std::abs(z - waveOriginZ));
+
+	waveSize;
+
+	// 四角形範囲内の座標に対してsin波を使って高さを計算
+	float waveEffect = waveAmplitude * sin((distanceX + distanceZ) - time);
+
+	return waveEffect;
+}
+
+// ウェーブ効果の計算関数（マンハッタン距離を使用し、四角形のウェーブを実現）
+float MapChipField::calculateWaveEffect(int x, int z, float time, int waveOriginX, int waveOriginZ, float waveSpeed, float waveAmplitude, float waveRange) {
+	// マンハッタン距離を計算
+	float distance = fabsf(float(x - waveOriginX)) + fabsf(float(z - waveOriginZ));
+
+	// ウェーブの範囲内か確認
+	if (distance > waveRange) {
+		return 0.0f; // ウェーブの範囲外なら影響なし
+	}
+
+	// ウェーブの高さを計算（sin波を使い、一定時間後に振幅を終わらせる）
+	float waveEffect = waveAmplitude * sinf(time * waveSpeed - distance);
+
+	// timeがwaveDurationを超えたら振幅を終わらせる
+	if (time > waveDuration) {
+		waveEffect = 0.0f;
+	}
+
+	return waveEffect;
 }
 
 void MapChipField::Draw(const ViewProjection& viewProjection) {
@@ -210,6 +281,7 @@ void MapChipField::IsMapY(AABB& charcter, float& posY, float radY) {
 		}
 	}
 }
+
 void MapChipField::IsMapY(AABB& charcter, float& posY, Vector3 rad) {
 	
 	Vector3 pos = Add(charcter.min, rad);
@@ -243,8 +315,6 @@ void MapChipField::IsMapY(AABB& charcter, float& posY, Vector3 rad) {
 	}
 }
 
-
-
 void MapChipField::IsMapY2(AABB& charcter, float& posY, float radY) {
 
 
@@ -265,3 +335,4 @@ void MapChipField::IsMapY2(AABB& charcter, float& posY, float radY) {
 uint32_t MapChipField::GetNumBlockVirtical() { return kNumBlockVirtical; }
 
 uint32_t MapChipField::GetNumBlockHorizontal() { return kNumBlockHorizontal; }
+
