@@ -70,6 +70,7 @@ public:
 
 	void IsMapY(float &posY, float radY, IndexSet &index);
 	void IsMapY(AABB& charcter, float& posY, float radY);
+	void IsMapY(AABB& charcter, float& posY, Vector3 rad);
 	void IsMapY2(AABB& charcter, float& posY, float radY);
 
 private:
@@ -92,5 +93,5 @@ private:
 	std::vector<std::vector<std::unique_ptr<MapObject>>> mapWorld_;
 	
 	//AABB collAABB[kNumBlockHorizontal][kNumBlockVirtical];
-	Vector3 rad = {0.5f, 0.5f, 0.5f};
+	Vector3 rad_ = {0.5f, 0.5f, 0.5f};
 };

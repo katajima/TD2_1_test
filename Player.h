@@ -43,7 +43,7 @@ private:
 	// テクスチャハンドル
 	uint32_t textureHandle_ = 0u;
 
-
+	bool isFlyColliderIgnored = 0;
 
 public:
 	///< summary>

@@ -46,8 +46,7 @@ void Player::Initialize(Model* model, ViewProjection* viewProjection, const Vect
 
 // 更新
 void Player::Update() {
-	// プレイヤーの移動を行う
-	Move(); // ① 移動処理（少しずつ移動して衝突判定を行うように修正する必要あり）
+	
 
 	// マップ上のプレイヤーの位置インデックスを取得
 	MapChipField::IndexSet index = mapChipField_->GetMapChipIndexSetByPosition(worldTransform_.translation_);
@@ -69,23 +68,29 @@ void Player::Update() {
 
 	// マップチップに応じたY座標（高さ）の更新
 	// mapChipField_->IsMapY(worldTransform_.translation_.y, rad.y, index);
-	if (onGround_ == true) {
-		mapChipField_->IsMapY2(collAABB_, worldTransform_.translation_.y, rad_.y);
-	} else if (onGround_ == false && isJamp_ == true) {
-		mapChipField_->IsMapY(collAABB_, worldTransform_.translation_.y, rad_.y);
-	} else if (!onGround_ && !isJamp_) {
-		isJamp_ = true;
-	}
-	
-	// AABBによるマップとの衝突判定
-	if (mapChipField_->IsMapAABB(collAABB_)) {
-		velocity_.y = 0; // Y軸の速度をゼロにする（例えば地面に接触した時）
-		isJamp_ = false;  // ジャンプ状態を解除
-		onGround_ = true;
-	} else if (!mapChipField_->IsMapAABB(collAABB_)) {
+	if (!isFlyColliderIgnored) {
+		if (onGround_ == true) {
+			mapChipField_->IsMapY2(collAABB_, worldTransform_.translation_.y, rad_.y);
+		} else if (onGround_ == false && isJamp_ == true) {
+			mapChipField_->IsMapY(collAABB_, worldTransform_.translation_.y, rad_);
+			// mapChipField_->IsMapY(worldTransform_.translation_.y, rad_.y, index);
+		} else if (!onGround_ && !isJamp_) {
+			isJamp_ = true;
+		}
 
-		onGround_ = false;
+		// AABBによるマップとの衝突判定
+		if (mapChipField_->IsMapAABB(collAABB_)) {
+			velocity_.y = 0; // Y軸の速度をゼロにする（例えば地面に接触した時）
+			isJamp_ = false; // ジャンプ状態を解除
+			onGround_ = true;
+		} else if (!mapChipField_->IsMapAABB(collAABB_)) {
+
+			onGround_ = false;
+		}
 	}
+
+	// プレイヤーの移動を行う
+	Move(); // ① 移動処理（少しずつ移動して衝突判定を行うように修正する必要あり）
 
 	// ImGuiデバッグ用ウィンドウ
 	ImGui::Begin("Window");
@@ -133,6 +138,13 @@ void Player::Move() {
 		if (velocity_.y <= -1.5f) {
 			velocity_.y = -1.5f;
 		}
+		if (velocity_.y >= 0) {
+			isFlyColliderIgnored = true;
+		} else {
+			isFlyColliderIgnored = false;
+		}
+	} else {
+		isFlyColliderIgnored = false;
 	}
 
 	worldTransform_.translation_.y += velocity_.y;

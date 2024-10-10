@@ -30,8 +30,8 @@ void MapChipField::Initialize() {
 				mapObject->worldTransformBlocks_ = std::make_unique<WorldTransform>();
 				mapObject->worldTransformBlocks_->Initialize();
 				mapObject->worldTransformBlocks_->translation_ = GetMapChipPositionByIndex(j, i,0);
-				mapObject->collAABB.max = Add(mapObject->worldTransformBlocks_->translation_, rad);
-				mapObject->collAABB.min = Subtract(mapObject->worldTransformBlocks_->translation_, rad);
+				mapObject->collAABB.max = Add(mapObject->worldTransformBlocks_->translation_, rad_);
+				mapObject->collAABB.min = Subtract(mapObject->worldTransformBlocks_->translation_, rad_);
 
 				// マップワールドに格納
 				mapWorld_[i][j] = std::move(mapObject);
@@ -57,8 +57,8 @@ void MapChipField::Update() {
 			if (!worldTransformBlock)
 				continue;
 			// AABBのmaxとminを設定
-			worldTransformBlock->collAABB.max = Add(worldTransformBlock->worldTransformBlocks_->translation_, rad);
-			worldTransformBlock->collAABB.min = Subtract(worldTransformBlock->worldTransformBlocks_->translation_, rad);
+			worldTransformBlock->collAABB.max = Add(worldTransformBlock->worldTransformBlocks_->translation_, rad_);
+			worldTransformBlock->collAABB.min = Subtract(worldTransformBlock->worldTransformBlocks_->translation_, rad_);
 			MapChipType o =  GetMapChipTypeByIndex(i,j);
 			int a;
 			a = int(o);
@@ -172,7 +172,7 @@ MapChipField::IndexSet MapChipField::GetMapChipIndexSetByPosition(const Vector3&
 	return indexSet;
 }
 
-bool MapChipField::IsMapAABB(AABB& charcter, IndexSet& index) { return IsCollision(charcter, mapWorld_[index.xIndex][index.zIndex]->collAABB); }
+bool MapChipField::IsMapAABB(AABB& charcter, IndexSet& index) { return IsCollision(charcter, mapWorld_[index.zIndex][index.xIndex]->collAABB); }
 
 bool MapChipField::IsMapAABB(AABB& charcter) {
 
@@ -191,8 +191,8 @@ bool MapChipField::IsMapAABB(AABB& charcter) {
 
 void MapChipField::IsMapY(float& posY, float radY, IndexSet& index) {
 
-	if (mapWorld_[index.xIndex][index.zIndex]->worldTransformBlocks_->translation_.y >= posY) {
-		posY = mapWorld_[index.xIndex][index.zIndex]->worldTransformBlocks_->translation_.y + radY + rad.y;
+	if (mapWorld_[index.zIndex][index.xIndex]->worldTransformBlocks_->translation_.y >= posY) {
+		posY = mapWorld_[index.zIndex][index.xIndex]->worldTransformBlocks_->translation_.y + radY + rad_.y;
 	}
 }
 
@@ -204,13 +204,46 @@ void MapChipField::IsMapY(AABB& charcter, float& posY, float radY) {
 				continue;
 			if (IsCollision(charcter, worldTransformBlock->collAABB)) {
 				if (worldTransformBlock->worldTransformBlocks_->translation_.y >= posY) {
-					posY = worldTransformBlock->worldTransformBlocks_->translation_.y + radY + rad.y;
+					posY = worldTransformBlock->worldTransformBlocks_->translation_.y + radY + rad_.y;
 				}
 			}
 		}
 	}
-
 }
+void MapChipField::IsMapY(AABB& charcter, float& posY, Vector3 rad) {
+	
+	Vector3 pos = Add(charcter.min, rad);
+	
+	// キャラクターの位置からマップインデックスを取得
+	IndexSet index = GetMapChipIndexSetByPosition(pos);
+
+	// インデックス範囲内か確認
+	if (index.xIndex < kNumBlockHorizontal && index.zIndex < kNumBlockVirtical) {
+		// 近いマップ番号だけをチェック
+		for (int i = -1; i <= 1; ++i) {
+			for (int j = -1; j <= 1; ++j) {
+				int x = index.xIndex + i;
+				int z = index.zIndex + j;
+
+				// 範囲外チェック
+				if (x < 0 || x >= kNumBlockHorizontal || z < 0 || z >= kNumBlockVirtical)
+					continue;
+
+				auto& worldTransformBlock = mapWorld_[z][x];
+				if (!worldTransformBlock)
+					continue;
+
+				if (IsCollision(charcter, worldTransformBlock->collAABB)) {
+					if (worldTransformBlock->worldTransformBlocks_->translation_.y >= posY) {
+						posY = worldTransformBlock->worldTransformBlocks_->translation_.y + rad.y + rad_.y;
+					}
+				}
+			}
+		}
+	}
+}
+
+
 
 void MapChipField::IsMapY2(AABB& charcter, float& posY, float radY) {
 
@@ -222,7 +255,7 @@ void MapChipField::IsMapY2(AABB& charcter, float& posY, float radY) {
 			if (IsCollision(charcter, worldTransformBlock->collAABB)) {
 
 				
-					posY = worldTransformBlock->worldTransformBlocks_->translation_.y + radY + rad.y;
+					posY = worldTransformBlock->worldTransformBlocks_->translation_.y + radY + rad_.y;
 				
 			}
 		}
