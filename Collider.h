@@ -4,6 +4,7 @@
 #include"ViewProjection.h"
 #include"Model.h"
 #include"CollisionTypeIdDef.h"
+#include"MathFunctions.h"
 
 class Collider {
 public:
@@ -21,6 +22,15 @@ public:
 	// 半径設定
 	void SetRadius(float radius) { radius_ = radius; }
 
+	// AABB半径取得
+	Vector3 GetAABBRadius() { return aabbRadius_; }
+	// AABB半径設定
+	void SetAABBRabius(Vector3 aabbRad) { aabbRadius_ = aabbRad; }
+
+	AABB GetAABB() { return aabb_; }
+
+	void SetAABB(AABB aabb) { aabb_ = aabb; }
+
 	// 衝突時に呼ばれる関数
 	virtual void OnCollision([[maybe_unused]] Collider* other){};
 
@@ -36,6 +46,14 @@ public:
 	void SetScale(Vector3 scale) { worldTransform.scale_ = scale; }
 
 private:
+
+
+	// AABBの半径
+	Vector3 aabbRadius_ = {0.5f, 0.5f, 0.5f};
+
+	//
+	AABB aabb_{};
+
 	// 衝突判定
 	float radius_ = 1.5f;
 	int count = 0;

@@ -29,7 +29,7 @@ void MapChipField::Initialize() {
 				auto mapObject = std::make_unique<MapObject>();
 				mapObject->worldTransformBlocks_ = std::make_unique<WorldTransform>();
 				mapObject->worldTransformBlocks_->Initialize();
-				mapObject->worldTransformBlocks_->translation_ = GetMapChipPositionByIndex(j, i);
+				mapObject->worldTransformBlocks_->translation_ = GetMapChipPositionByIndex(j, i,0);
 				mapObject->collAABB.max = Add(mapObject->worldTransformBlocks_->translation_, rad);
 				mapObject->collAABB.min = Subtract(mapObject->worldTransformBlocks_->translation_, rad);
 
@@ -159,8 +159,8 @@ MapChipType MapChipField::GetMapChipTypeByIndex(uint32_t xIndex, uint32_t zIndex
 
 // マップチップ座標の取得
 //  縦 (z) と 横 (x) の指定で、その位置のマップチップのワールド座標を取得する
-Vector3 MapChipField::GetMapChipPositionByIndex(uint32_t xIndex, uint32_t zIndex) {
-	return Vector3(kBlockWidth * xIndex, 0, kBlockHeight * zIndex); // z座標を使う
+Vector3 MapChipField::GetMapChipPositionByIndex(uint32_t xIndex, uint32_t zIndex, float posY) {
+	return Vector3(kBlockWidth * xIndex, posY, kBlockHeight * zIndex); // z座標を使う
 }
 
 // マップチップ番号を計算

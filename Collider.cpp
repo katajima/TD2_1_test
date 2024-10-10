@@ -8,6 +8,9 @@ worldTransform.Initialize();
 
 void Collider::UpdateWorldTransform() {
 
+	aabb_.max = Add(worldTransform.translation_, aabbRadius_);
+	aabb_.min = Subtract(worldTransform.translation_, aabbRadius_);
+
 	// ワールド座標をワールドトランスフォームに適応
 	worldTransform.translation_ = GetCenterPosition();
 

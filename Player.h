@@ -30,7 +30,7 @@ private:
 	// 速度
 	Vector3 velocity_ = {};
 
-	bool isJamp = false;
+	bool isJamp_ = false;
 	
 
 	// 着地状態フラグ
@@ -92,8 +92,11 @@ public:
 
 
 	// マップ用
-	Vector3 rad{0.01f,0.5f,0.01f};
-	AABB collAABB;
+	Vector3 rad_{0.01f,0.5f,0.01f};
+	AABB collAABB_;
 
+	//敵との判定用
+	Vector3 radEne_{};
+	AABB aabbEne_{};
 
 };

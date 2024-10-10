@@ -24,6 +24,9 @@ Player::~Player()
 // 自キャラの初期化
 void Player::Initialize(Model* model, ViewProjection* viewProjection, const Vector3& position) {
 	Collider::Initialize();
+	Collider::SetAABBRabius(Vector3{0.25f,0.25f,0.25f});
+	radEne_ = Collider::GetAABBRadius();
+	
 
 	// NULLポインタチェック
 	assert(model);
@@ -51,44 +54,52 @@ void Player::Update() {
 	Vector2 mapIndex = Vector2(float(index.xIndex), float(index.zIndex));
 
 	// プレイヤーのAABB（Axis-Aligned Bounding Box）を更新
-	collAABB.max = Add(worldTransform_.translation_, rad);
-	collAABB.min = Subtract(worldTransform_.translation_, rad);
+	collAABB_.max = Add(worldTransform_.translation_, rad_);
+	collAABB_.min = Subtract(worldTransform_.translation_, rad_);
 
 	// ImGuiデバッグ用ウィンドウ
 	ImGui::Begin("PlayAABB");
-	ImGui::InputFloat3("max", &collAABB.max.x);
-	ImGui::InputFloat3("min", &collAABB.min.x); // 修正: minの入力
+	ImGui::InputFloat3("max", &collAABB_.max.x);
+	ImGui::InputFloat3("min", &collAABB_.min.x); // 
+	ImGui::InputFloat3("uesEnemyRad", &radEne_.x); // 
+	aabbEne_ = Collider::GetAABB();
+	ImGui::InputFloat3("uesEnemyAABB.max", &aabbEne_.max.x); // 
+	ImGui::InputFloat3("uesEnemyAABB.min", &aabbEne_.min.x); //
 	ImGui::End();
 
 	// マップチップに応じたY座標（高さ）の更新
 	// mapChipField_->IsMapY(worldTransform_.translation_.y, rad.y, index);
 	if (onGround_ == true) {
-		mapChipField_->IsMapY2(collAABB, worldTransform_.translation_.y, rad.y);
-	} else if (onGround_ == false && isJamp == true) {
-		mapChipField_->IsMapY(collAABB, worldTransform_.translation_.y, rad.y);
-	} else if (!onGround_ && !isJamp) {
-		isJamp = true;
+		mapChipField_->IsMapY2(collAABB_, worldTransform_.translation_.y, rad_.y);
+	} else if (onGround_ == false && isJamp_ == true) {
+		mapChipField_->IsMapY(collAABB_, worldTransform_.translation_.y, rad_.y);
+	} else if (!onGround_ && !isJamp_) {
+		isJamp_ = true;
 	}
 	
 	// AABBによるマップとの衝突判定
-	if (mapChipField_->IsMapAABB(collAABB)) {
+	if (mapChipField_->IsMapAABB(collAABB_)) {
 		velocity_.y = 0; // Y軸の速度をゼロにする（例えば地面に接触した時）
-		isJamp = false;  // ジャンプ状態を解除
+		isJamp_ = false;  // ジャンプ状態を解除
 		onGround_ = true;
-	} else if (!mapChipField_->IsMapAABB(collAABB)) {
+	} else if (!mapChipField_->IsMapAABB(collAABB_)) {
 
 		onGround_ = false;
 	}
 
 	// ImGuiデバッグ用ウィンドウ
 	ImGui::Begin("Window");
+	if (ImGui::Button("SetPos")) {
+		worldTransform_.translation_ = mapChipField_->GetMapChipPositionByIndex(0,0,3);
+	}
 	ImGui::InputFloat3("velocity_", &velocity_.x);
 	ImGui::InputFloat3("translation_", &worldTransform_.translation_.x);
 	ImGui::InputFloat2("mapIndex", &mapIndex.x); // 修正: mapIndexを表示
-	ImGui::Checkbox("jump", &isJamp);
+	ImGui::Checkbox("jump", &isJamp_);
 	ImGui::Checkbox("onGround", &onGround_);
 	ImGui::End();
 
+	Collider::UpdateWorldTransform();
 	// ワールドトランスフォームの更新
 	worldTransform_.UpdateMatrix();
 }
@@ -96,29 +107,32 @@ void Player::Update() {
 // 移動
 void Player::Move() {
 
-	if (Input::GetInstance()->TriggerKey(DIK_RIGHT) && isJamp == false) {
+	if (Input::GetInstance()->TriggerKey(DIK_RIGHT) && isJamp_ == false) {
 		worldTransform_.translation_.x += 1;
-		isJamp = true;
+		isJamp_ = true;
 		velocity_.y = 1;
 	}
-	if (Input::GetInstance()->TriggerKey(DIK_LEFT) && isJamp == false) {
+	if (Input::GetInstance()->TriggerKey(DIK_LEFT) && isJamp_ == false) {
 		worldTransform_.translation_.x -= 1;
-		isJamp = true;
+		isJamp_ = true;
 		velocity_.y = 1;
 	}
-	if (Input::GetInstance()->TriggerKey(DIK_UP) && isJamp == false) {
+	if (Input::GetInstance()->TriggerKey(DIK_UP) && isJamp_ == false) {
 		worldTransform_.translation_.z += 1;
-		isJamp = true;
+		isJamp_ = true;
 		velocity_.y = 1;
 	}
-	if (Input::GetInstance()->TriggerKey(DIK_DOWN) && isJamp == false) {
+	if (Input::GetInstance()->TriggerKey(DIK_DOWN) && isJamp_ == false) {
 		worldTransform_.translation_.z -= 1;
-		isJamp = true;
+		isJamp_ = true;
 		velocity_.y = 1;
 	}
 
-	if (isJamp == true) {
+	if (isJamp_ == true) {
 		velocity_.y -= 0.1f;
+		if (velocity_.y <= -1.5f) {
+			velocity_.y = -1.5f;
+		}
 	}
 
 	worldTransform_.translation_.y += velocity_.y;
@@ -149,7 +163,7 @@ void Player::Draw() {
 }
 
 Vector3 Player::GetCenterPosition() const {
-	const Vector3 ofset = {0.0f, 1.5f, 0.0f};
+	const Vector3 ofset = {0.0f, 0.0f, 0.0f};
 	// ワールド座標に変換
 	Vector3 worldPos = Transform(ofset, worldTransform_.matWorld_);
 

@@ -55,7 +55,7 @@ public:
 	//マップチップ種別の取得
 	MapChipType GetMapChipTypeByIndex(uint32_t xIndex, uint32_t zIndex);
 	//マップチップ座標の取得
-	Vector3 GetMapChipPositionByIndex(uint32_t xIndex, uint32_t zIndex);
+	Vector3 GetMapChipPositionByIndex(uint32_t xIndex, uint32_t zIndex,float posY);
 
 	uint32_t GetNumBlockVirtical();
 

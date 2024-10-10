@@ -75,7 +75,7 @@ void GameScene::Initialize() {
 	// プレイヤークラス生成
 	
 	// 座標をマップチップ番号で指定
-	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(1, 1);
+	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(0,0,3);
 	playerPosition = {0, 1, 0};
 	playerModel = Model::CreateFromOBJ("player", true);
 	// プレイヤー初期化
@@ -110,6 +110,12 @@ void GameScene::Initialize() {
 }
 
 void GameScene::Update() {
+
+
+	ImGui::Begin("camera");
+	ImGui::DragFloat3("translation", &viewProjection_.translation_.x,0.1f);
+	ImGui::DragFloat3("rotate", &viewProjection_.rotation_.x,0.01f);
+	ImGui::End();
 
 	// プレイヤー更新処理
 	player_->Update();

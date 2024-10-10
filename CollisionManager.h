@@ -21,6 +21,14 @@ public:
 	/// <param name="colliderB"></param>
 	void CheckCollisionPair(Collider* colliderA, Collider* colliderB);
 
+
+	/// <summary>
+	/// コライダー2つの衝突判定と応答AABBでの
+	/// </summary>
+	/// <param name="colliderA"></param>
+	/// <param name="colliderB"></param>
+	void CheckCollisionAABBPair(Collider* colliderA, Collider* colliderB);
+
 	// 全ての当たり判定チェック
 	void CheckAllCollisions();
 

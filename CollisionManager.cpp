@@ -33,6 +33,45 @@ void CollisionManager::CheckCollisionPair(Collider* colliderA, Collider* collide
 	}
 }
 
+void CollisionManager::CheckCollisionAABBPair(Collider* colliderA, Collider* colliderB) {
+
+	// コライダーAの座標を取得
+	Vector3 posA = colliderA->GetCenterPosition();
+	// コライダーBの座標を取得
+	Vector3 posB = colliderB->GetCenterPosition();
+
+
+	// AABBに使用するための各軸の半径取得
+ 	Vector3  collARadAABB = colliderA->GetAABBRadius();
+
+	// AABBにしようするたの各軸の半径取得
+	Vector3 collBRadAABB = colliderB->GetAABBRadius();
+
+	// colliderAのAABB
+	AABB aabbA;
+	aabbA.max = Add(posA, collARadAABB);
+	aabbA.min = Subtract(posA, collARadAABB);
+	
+	// AABBの情報を知るために
+	colliderA->SetAABB(aabbA);
+
+	// colliderBのAABB
+	AABB aabbB;
+	aabbB.max = Add(posB, collBRadAABB);
+	aabbB.min = Subtract(posB, collBRadAABB);
+
+	// AABBの情報を知るために
+	colliderB->SetAABB(aabbB);
+	
+	// AABBでの衝突判定
+	if (IsCollision(aabbA,aabbB)) {
+		// コライダーAの衝突判時コールバックを呼び出す
+		colliderA->OnCollision(colliderB);
+		// コライダーBの衝突判時コールバックを呼び出す
+		colliderB->OnCollision(colliderA);
+	}
+}
+
 void CollisionManager::CheckAllCollisions() {
 	// リスト内のペアを総当たり
 	std::list<Collider*>::iterator itrA = colliders_.begin();
@@ -47,7 +86,7 @@ void CollisionManager::CheckAllCollisions() {
 			Collider* colliderB = *itrB;
 
 			// ペアの当たり判定
-			CheckCollisionPair(colliderA, colliderB);
+			CheckCollisionAABBPair(colliderA, colliderB);
 		}
 	}
 }
